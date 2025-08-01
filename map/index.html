@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <title>WebGIS Dusun Boto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* Memberi ruang di atas agar konten tidak tertutup navbar */
+        body {
+            padding-top: 56px; /* Menyesuaikan dengan tinggi navbar */
+        }
+
+        /* Styling untuk navbar global dari landing page Anda */
+        .navbar {
+            background-color: #004422;
+        }
+        .navbar .nav-link {
+            color: white;
+            margin-right: 15px;
+        }
+        .navbar .nav-link:hover {
+            text-decoration: underline;
+            color:#004422;   /* Warna saat hover */
+            background-color: #fAF6E6; /* Warna latar belakang saat hover */
+        }
+
+        /* Styling untuk logo */
+        .navbar-brand img {
+            height: 45px; /* Ditingkatkan dari 30px */
+            width: auto; /* Memastikan rasio aspek logo tetap terjaga */
+            margin-right: 12px; /* Sedikit lebih banyak ruang */
+            vertical-align: middle;
+            /* Opsional: Tambahkan filter untuk kontras jika perlu */
+            /* filter: drop-shadow(0px 0px 2px rgba(255, 255, 255, 0.7)); */
+        }
+
+        .navbar-brand {
+            display: flex; /* Menggunakan flexbox untuk penataan yang lebih baik */
+            align-items: center; /* Menyusun item secara vertikal di tengah */
+        }
+    </style>
+
+    </head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../storage/LOGO_BOTO_FIX.png">
+                <img src="../storage/LOGO_BOTO_FIX.png" alt="Logo Dusun Boto">
+                WebGIS Dusun Boto
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="main-navbar">
+                <ul class="navbar-nav ms-auto">
+                    
+                    <li class="nav-item"><a class="nav-link" href="/#tentang">Profil</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../profil-dusun/index.html">Explore</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/#foto">Foto</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/#video">Video</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/#kontak">Kontak</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.html">Lihat Peta</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        
+<div id="mapContainer">
+    
+    <div id="legendPanel" class="glass-panel">
+        <div class="legend-header">
+            <h3 class="legend-title">
+                <i class="fas fa-layer-group"></i>
+                Peta Interaktif 3D
+            </h3>
+            <button id="legendToggle" class="legend-toggle">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        <div class="legend-content">
+            <div id="legendItems"></div>
+        </div>
+    </div>
+
+    
+    <div class="map-controls">
+        <button id="toggleView" class="control-btn primary">
+            <i class="fas fa-cube"></i>
+            <span>3D View</span>
+        </button>
+        <button id="toggle3DBuildings" class="control-btn secondary">
+            <i class="fas fa-building"></i>
+            <span>3D Buildings</span>
+        </button>
+        <button id="resetView" class="control-btn secondary">
+            <i class="fas fa-crosshairs"></i>
+            <span>Reset</span>
+        </button>
+        <button id="fullscreen" class="control-btn secondary">
+            <i class="fas fa-expand"></i>
+            <span>Fullscreen</span>
+        </button>
+    </div>
+
+    
+    <div id="searchPanel" class="glass-panel search-panel">
+        <div class="search-input-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Cari lokasi atau jenis lahan...">
+        </div>
+    </div>
+
+    
+    <div id="map"></div>
+
+    
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Memuat peta 3D...</p>
+        </div>
+    </div>
+</div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+        <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --accent-color: #f97316;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #000000 100%);
+            overflow: hidden;
+        }
+
+        /* Map Container */
+        #mapContainer {
+            position: fixed;
+            top: 60px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            overflow: hidden;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        /* Glass Panel Effect */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        /* Legend Panel */
+        #legendPanel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 350px;
+            max-height: calc(100vh - 120px);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        #legendPanel.collapsed {
+            transform: translateX(-320px);
+        }
+
+        .legend-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .legend-title {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .legend-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .legend-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .legend-content {
+            padding: 1rem;
+            max-height: calc(100vh - 240px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .legend-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .legend-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .legend-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .legend-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .legend-section-title {
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .legend-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+
+        .legend-item-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .legend-color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .legend-item:hover .legend-color-box {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .legend-label {
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Modern Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.2);
+            transition: 0.3s;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch input:checked + .slider {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .toggle-switch input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Map Controls */
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 10;
+        }
+
+        .control-btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 120px;
+            justify-content: center;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-btn.primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        .control-btn.primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.6);
+        }
+
+        .control-btn.secondary {
+            background: var(--glass-bg);
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .control-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: var(--success-color);
+            color: white;
+        }
+
+        /* Search Panel */
+        .search-panel {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            padding: 1rem;
+        }
+
+        .search-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            z-index: 1;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.875rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        #searchInput::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(30, 41, 59, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        .loading-spinner p {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #legendPanel {
+                width: 300px;
+                top: 10px;
+                left: 10px;
+            }
+
+            .search-panel {
+                width: calc(100% - 40px);
+                left: 20px;
+                transform: none;
+                top: 80px;
+            }
+
+            .map-controls {
+                top: 140px;
+                right: 10px;
+            }
+
+            .control-btn {
+                min-width: 100px;
+                font-size: 0.8rem;
+                padding: 0.6rem 0.8rem;
+            }
+
+            #mapContainer {
+                top: 70px;
+            }
+        }
+
+        /* Mapbox Popup Styling */
+        .mapboxgl-popup-content {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(20px) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 12px !important;
+            color: white !important;
+            box-shadow: var(--shadow-xl) !important;
+            padding: 0.5rem 1rem !important;
+        }
+
+        .mapboxgl-popup-close-button {
+            color: white !important;
+            font-size: 1.2rem !important;
+        }
+    </style>
+
+    <script>
+        // Mapbox Access Token - Replace with your actual token
+        mapboxgl.accessToken = 'pk.eyJ1IjoicmF5enUyMyIsImEiOiJjbWRpbHJoeXgwZGt4MmpvYTNldGE3Zmp0In0.mjAKsR4ofnAavL6mGdRC1Q';
+
+        // Enhanced color mapping
+        const modernColorMap = {
+            "Sungai": "#3b82f6",
+            "Perikanan air tawar": "#06b6d4",
+            "Sawah": "#22d3ee",
+            "Sawah Tadah Hujan": "#67e8f9",
+            "Hutan": "#059669",
+            "Hutan Rakyat": "#065f46",
+            "Perkebunan": "#14b8a6",
+            "Kebun Campur": "#10b981",
+            "Tegalan/Ladang": "#fbbf24",
+            "Rumput": "#84cc16",
+            "Semak Belukar": "#65a30d",
+            "Vegetasi Non Budidaya Lainnya": "#134e4a",
+            "Pemukiman": "#f97316",
+            "Tempat Tinggal": "#dc2626",
+            "Bangunan": "#8b5cf6",
+            "Pekarangan": "#a3e635",
+            "Industri & Perdagangan": "#f97316",
+            "Peternakan": "#a16207",
+            "Transportasi": "#7c3aed",
+            "Tempat menarik/Pariwisata": "#c026d3",
+            "Pendidikan": "#8b5cf6",
+            "Lahan Terbuka (Tanah Kosong)": "#a8a29e",
+            "Lahan Terbuka": "#a8a29e",
+            // Warna untuk data SARPRAS
+            "Perdagangan dan Jasa": "#f59e0b",
+            "Peribadatan": "#a855f7",
+            "Pemakaman": "#64748b"
+        };
+
+        let is3D = false;
+        let show3DBuildings = false;
+        let map;
+        let isLegendCollapsed = false;
+
+        // Initialize map with Mapbox 3D capabilities
+        function initializeMap() {
+            map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/satellite-streets-v12', // Style yang mendukung 3D buildings
+                center: [110.179044, -7.553176],
+                zoom: 16,
+                pitch: 0,
+                bearing: 0,
+                antialias: true
+            });
+
+            map.addControl(new mapboxgl.NavigationControl({
+                visualizePitch: true
+            }), 'bottom-right');
+
+            map.addControl(new mapboxgl.ScaleControl({
+                maxWidth: 100,
+                unit: 'metric'
+            }), 'bottom-left');
+
+            return map;
+        }
+
+        // Enhanced legend creation
+        function createModernLegendItem(name, color, layerId) {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            item.setAttribute('data-layer', layerId);
+
+            const itemInfo = document.createElement('div');
+            itemInfo.className = 'legend-item-info';
+
+            const colorBox = document.createElement('div');
+            colorBox.className = 'legend-color-box';
+            colorBox.style.backgroundColor = color;
+
+            const label = document.createElement('span');
+            label.className = 'legend-label';
+            label.textContent = name;
+
+            itemInfo.appendChild(colorBox);
+            itemInfo.appendChild(label);
+
+            const toggle = document.createElement('label');
+            toggle.className = 'toggle-switch';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = true;
+            checkbox.addEventListener('change', (e) => {
+                const visibility = e.target.checked ? 'visible' : 'none';
+                map.setLayoutProperty(layerId, 'visibility', visibility);
+                item.style.opacity = e.target.checked ? '1' : '0.5';
+            });
+
+            const slider = document.createElement('span');
+            slider.className = 'slider';
+
+            toggle.appendChild(checkbox);
+            toggle.appendChild(slider);
+
+            item.appendChild(itemInfo);
+            item.appendChild(toggle);
+
+            return item;
+        }
+
+        // Enhanced popup creation
+        function createEnhancedPopup(properties, coordinates, type) {
+            let content = '';
+            
+            if (type === 'bangunan') {
+                content = `
+                    <div style="padding: 0.5rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #f97316; font-size: 1rem;">
+                            <i class="fas fa-building" style="margin-right: 0.5rem;"></i> Bangunan
+                        </h4>
+                        <p style="margin: 0.25rem 0; font-size: 0.875rem;">
+                            <strong>ID:</strong> ${properties.OBJECTID}
+                        </p>
+                        <p style="margin: 0.25rem 0; font-size: 0.875rem;">
+                            <strong>Luas:</strong> ${parseFloat(properties.Shape_Area).toFixed(2)} m²
+                        </p>
+                    </div>`;
+            } else if (type === 'sarpras') {
+                const nama = properties.Nama ? `<p style="margin: 0.25rem 0; font-size: 0.875rem;"><strong>Nama:</strong> ${properties.Nama}</p>` : '';
+                content = `
+                    <div style="padding: 0.5rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: ${modernColorMap[properties.KETERANGAN] || '#64748b'}; font-size: 1rem;">
+                            <i class="fas fa-map-marker-alt" style="margin-right: 0.5rem;"></i> ${properties.KETERANGAN}
+                        </h4>
+                        ${nama}
+                    </div>`;
+            } else { // Land Use
+                content = `
+                    <div style="padding: 0.5rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: ${modernColorMap[properties.KETERANGAN] || '#64748b'}; font-size: 1rem;">
+                            <i class="fas fa-layer-group" style="margin-right: 0.5rem;"></i> ${properties.KETERANGAN}
+                        </h4>
+                        <p style="margin: 0.25rem 0; font-size: 0.875rem;">
+                            <strong>Luas:</strong> ${parseFloat(properties.SHAPE_Area).toFixed(2)} m²
+                        </p>
+                    </div>`;
+            }
+
+            return new mapboxgl.Popup({
+                closeButton: true,
+                closeOnClick: true,
+                maxWidth: '300px'
+            }).setLngLat(coordinates).setHTML(content);
+        }
+
+        // Add 3D buildings layer - improved version
+        function add3DBuildings() {
+            // Pastikan style sudah loaded dan memiliki source composite
+            if (map.getSource('composite')) {
+                map.addLayer({
+                    'id': '3d-buildings',
+                    'source': 'composite',
+                    'source-layer': 'building',
+                    'filter': ['==', 'extrude', 'true'],
+                    'type': 'fill-extrusion',
+                    'minzoom': 15,
+                    'paint': {
+                        'fill-extrusion-color': [
+                            'case',
+                            ['boolean', ['feature-state', 'hover'], false],
+                            '#ff6b6b',
+                            '#aaa'
+                        ],
+                        'fill-extrusion-height': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            15,
+                            0,
+                            15.05,
+                            ['get', 'height']
+                        ],
+                        'fill-extrusion-base': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            15,
+                            0,
+                            15.05,
+                            ['get', 'min_height']
+                        ],
+                        'fill-extrusion-opacity': 0.8
+                    }
+                });
+                
+                // Pastikan 3D buildings berada di bawah sarpras
+                const allSarprasLayers = Array.from(document.querySelectorAll('[data-layer^="sarpras-layer"]')).map(el => el.getAttribute('data-layer'));
+                if (allSarprasLayers.length > 0) {
+                    map.moveLayer('3d-buildings', allSarprasLayers[0]);
+                }
+            } else {
+                console.warn('Composite source not available. Make sure you are using a Mapbox style that supports 3D buildings.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            initializeMap();
+
+            map.on('load', () => {
+                const legendContainer = document.getElementById('legendItems');
+
+                // Load all GeoJSON files
+                Promise.all([
+                    fetch("../geojson/PL_Boto_N.geojson").then(res => res.json()),
+                    fetch("../geojson/Bangunan_Boto.geojson").then(res => res.json()),
+                    fetch("../geojson/SARPRAS.geojson").then(res => res.json())
+                ]).then(([plData, bangunanData, sarprasData]) => {
+    
+                    const plLayers = new Set();
+                    const sarprasLayers = new Set();
+
+                    // URUTAN PENAMBAHAN LAYER: Dari bawah ke atas
+                    // 1. PENGGUNAAN LAHAN (Bottom Layer - ditambahkan pertama)
+                    const plSection = document.createElement('div');
+                    plSection.className = 'legend-section';
+                    plSection.innerHTML = '<div class="legend-section-title"><i class="fas fa-seedling"></i> Penggunaan Lahan</div>';
+                    
+                    map.addSource('pl_boto_n', { type: 'geojson', data: plData });
+                    
+                    plData.features.forEach(feature => {
+                        const category = feature.properties.KETERANGAN;
+                        if (!category || plLayers.has(category)) return;
+                        plLayers.add(category);
+
+                        const layerId = `pl-layer-${category.replace(/[\s/()]+/g, '-')}`;
+                        const color = modernColorMap[category] || '#64748b';
+
+                        map.addLayer({
+                            id: layerId,
+                            type: 'fill',
+                            source: 'pl_boto_n',
+                            filter: ['==', ['get', 'KETERANGAN'], category],
+                            paint: { 
+                                'fill-color': color, 
+                                'fill-opacity': 0.6 
+                            }
+                        });
+
+                        plSection.appendChild(createModernLegendItem(category, color, layerId));
+                    });
+
+                    // 2. BANGUNAN (Middle Layer - ditambahkan kedua)
+                    const bangunanSection = document.createElement('div');
+                    bangunanSection.className = 'legend-section';
+                    bangunanSection.innerHTML = '<div class="legend-section-title"><i class="fas fa-building"></i> Bangunan</div>';
+                    
+                    map.addSource('bangunan_boto', { type: 'geojson', data: bangunanData });
+                    
+                    map.addLayer({
+                        id: 'layer-bangunan',
+                        type: 'fill',
+                        source: 'bangunan_boto',
+                        paint: { 
+                            'fill-color': '#8b5cf6', 
+                            'fill-opacity': 0.8, 
+                            'fill-outline-color': '#ffffff' 
+                        }
+                    });
+
+                    bangunanSection.appendChild(createModernLegendItem('Semua Bangunan', '#8b5cf6', 'layer-bangunan'));
+
+                    // 3. SARPRAS (Top Layer - ditambahkan terakhir agar berada paling atas)
+                    const sarprasSection = document.createElement('div');
+                    sarprasSection.className = 'legend-section';
+                    sarprasSection.innerHTML = '<div class="legend-section-title"><i class="fas fa-map-marker-alt"></i> Sarana & Prasarana</div>';
+                    
+                    map.addSource('sarpras', { type: 'geojson', data: sarprasData });
+                    
+                    sarprasData.features.forEach(feature => {
+                        const category = feature.properties.KETERANGAN;
+                        if (!category || sarprasLayers.has(category)) return;
+                        sarprasLayers.add(category);
+
+                        const layerId = `sarpras-layer-${category.replace(/[\s/()]+/g, '-')}`;
+                        const color = modernColorMap[category] || '#cbd5e1';
+
+                        map.addLayer({
+                            id: layerId,
+                            type: 'circle',
+                            source: 'sarpras',
+                            filter: ['==', ['get', 'KETERANGAN'], category],
+                            paint: {
+                                'circle-radius': 8,
+                                'circle-color': color,
+                                'circle-stroke-width': 2,
+                                'circle-stroke-color': '#ffffff',
+                                'circle-opacity': 0.9
+                            }
+                        });
+
+                        sarprasSection.appendChild(createModernLegendItem(category, color, layerId));
+                    });
+
+                    // MENAMBAHKAN KE LEGEND DALAM URUTAN YANG DIINGINKAN (Sarpras, Bangunan, PL)
+                    legendContainer.appendChild(sarprasSection);
+                    legendContainer.appendChild(bangunanSection);
+                    legendContainer.appendChild(plSection);
+
+                    // MEMASTIKAN URUTAN LAYER YANG BENAR
+                    // Pindahkan layer untuk memastikan urutan yang tepat
+                    const allPlLayers = Array.from(plLayers).map(cat => `pl-layer-${cat.replace(/[\s/()]+/g, '-')}`);
+                    const allSarprasLayers = Array.from(sarprasLayers).map(cat => `sarpras-layer-${cat.replace(/[\s/()]+/g, '-')}`);
+                    
+                    // Pastikan bangunan berada di atas penggunaan lahan
+                    if (allPlLayers.length > 0) {
+                        map.moveLayer('layer-bangunan', allPlLayers[allPlLayers.length - 1]);
+                    }
+                    
+                    // Pastikan sarpras berada paling atas
+                    allSarprasLayers.forEach(layerId => {
+                        map.moveLayer(layerId);
+                    });
+
+                    // Click handlers
+                    map.on('click', (e) => {
+                        // Check SARPRAS first (highest priority)
+                        const sarprasLayerIds = Array.from(sarprasLayers).map(cat => `sarpras-layer-${cat.replace(/[\s/()]+/g, '-')}`);
+                        const sarprasFeatures = map.queryRenderedFeatures(e.point, { layers: sarprasLayerIds });
+                        if (sarprasFeatures.length) {
+                            createEnhancedPopup(sarprasFeatures[0].properties, e.lngLat, 'sarpras').addTo(map);
+                            return;
+                        }
+
+                        // Check Buildings second
+                        const bangunanFeatures = map.queryRenderedFeatures(e.point, { layers: ['layer-bangunan'] });
+                        if (bangunanFeatures.length) {
+                            createEnhancedPopup(bangunanFeatures[0].properties, e.lngLat, 'bangunan').addTo(map);
+                            return;
+                        }
+
+                        // Check Land Use last (lowest priority)
+                        const plLayerIds = Array.from(plLayers).map(cat => `pl-layer-${cat.replace(/[\s/()]+/g, '-')}`);
+                        const plFeatures = map.queryRenderedFeatures(e.point, { layers: plLayerIds });
+                        if (plFeatures.length) {
+                            createEnhancedPopup(plFeatures[0].properties, e.lngLat, 'land-use').addTo(map);
+                        }
+                    });
+
+                    // Hover effects for all layers
+                    const hoverLayers = [
+                        ...Array.from(sarprasLayers).map(cat => `sarpras-layer-${cat.replace(/[\s/()]+/g, '-')}`),
+                        'layer-bangunan',
+                        ...Array.from(plLayers).map(cat => `pl-layer-${cat.replace(/[\s/()]+/g, '-')}`)
+                    ];
+
+                    hoverLayers.forEach(layerId => {
+                        map.on('mouseenter', layerId, () => map.getCanvas().style.cursor = 'pointer');
+                        map.on('mouseleave', layerId, () => map.getCanvas().style.cursor = '');
+                    });
+
+                    setTimeout(() => loadingOverlay.classList.add('hidden'), 500);
+
+                }).catch(error => {
+                    console.error("Gagal memuat data GeoJSON:", error);
+                    loadingOverlay.innerHTML = `<div class="loading-spinner"><p style="color:var(--error-color);">Gagal memuat data peta.</p></div>`;
+                });
+            });
+
+            // Event Listeners for Map Controls
+            document.getElementById('toggleView').addEventListener('click', () => {
+                is3D = !is3D;
+                const btn = document.getElementById('toggleView');
+                
+                if (is3D) {
+                    map.easeTo({ pitch: 60, bearing: -20, duration: 1500 });
+                    btn.innerHTML = '<i class="fas fa-map"></i><span>2D View</span>';
+                    btn.classList.add('active');
+                } else {
+                    map.easeTo({ pitch: 0, bearing: 0, duration: 1500 });
+                    btn.innerHTML = '<i class="fas fa-cube"></i><span>3D View</span>';
+                    btn.classList.remove('active');
+                }
+            });
+
+            document.getElementById('toggle3DBuildings').addEventListener('click', () => {
+                show3DBuildings = !show3DBuildings;
+                const btn = document.getElementById('toggle3DBuildings');
+                
+                if (show3DBuildings) {
+                    // Tunggu sebentar untuk memastikan style sudah loaded
+                    setTimeout(() => {
+                        add3DBuildings();
+                        btn.innerHTML = '<i class="fas fa-building"></i><span>Hide 3D</span>';
+                        btn.classList.add('active');
+                    }, 500);
+                } else {
+                    if (map.getLayer('3d-buildings')) {
+                        map.removeLayer('3d-buildings');
+                    }
+                    btn.innerHTML = '<i class="fas fa-building"></i><span>3D Buildings</span>';
+                    btn.classList.remove('active');
+                }
+            });
+
+            document.getElementById('resetView').addEventListener('click', () => {
+                map.easeTo({ 
+                    center: [110.179044, -7.553176], 
+                    zoom: 16, 
+                    pitch: 0, 
+                    bearing: 0, 
+                    duration: 2000 
+                });
+            });
+
+            document.getElementById('fullscreen').addEventListener('click', () => {
+                const btn = document.getElementById('fullscreen');
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                    btn.innerHTML = '<i class="fas fa-compress"></i><span>Exit</span>';
+                } else {
+                    document.exitFullscreen();
+                    btn.innerHTML = '<i class="fas fa-expand"></i><span>Fullscreen</span>';
+                }
+            });
+
+            document.getElementById('legendToggle').addEventListener('click', () => {
+                const panel = document.getElementById('legendPanel');
+                const icon = document.querySelector('#legendToggle i');
+                
+                isLegendCollapsed = !isLegendCollapsed;
+                
+                if (isLegendCollapsed) {
+                    panel.classList.add('collapsed');
+                    icon.className = 'fas fa-chevron-right';
+                } else {
+                    panel.classList.remove('collapsed');
+                    icon.className = 'fas fa-chevron-left';
+                }
+            });
+
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                document.querySelectorAll('.legend-item').forEach(item => {
+                    const label = item.querySelector('.legend-label').textContent.toLowerCase();
+                    item.style.display = label.includes(searchTerm) ? 'flex' : 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+"type": "FeatureCollection",
+"name": "UMKM",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "OBJECTID": 5, "KETERANGAN": "Warung Kelontong" }, "geometry": { "type": "Point", "coordinates": [ 110.178854868925285, -7.553214158416142 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 6, "KETERANGAN": "Bibit Tanaman" }, "geometry": { "type": "Point", "coordinates": [ 110.177358576928881, -7.553777246646725 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 7, "KETERANGAN": "Warung Kelontong" }, "geometry": { "type": "Point", "coordinates": [ 110.178330782839154, -7.554497320261645 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 8, "KETERANGAN": "Distributor Pupuk" }, "geometry": { "type": "Point", "coordinates": [ 110.178941673700038, -7.554146549858097 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 9, "KETERANGAN": "Warung Kelontong" }, "geometry": { "type": "Point", "coordinates": [ 110.179577813309336, -7.553150891559726 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 10, "KETERANGAN": "Jasa Pijat" }, "geometry": { "type": "Point", "coordinates": [ 110.180051018192842, -7.552603258299687 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 11, "KETERANGAN": "Bengkel" }, "geometry": { "type": "Point", "coordinates": [ 110.177396682817488, -7.554216191125009 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 12, "KETERANGAN": "Lele Farm" }, "geometry": { "type": "Point", "coordinates": [ 110.17762343898967, -7.553782674890472 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 13, "KETERANGAN": "Warung Kelontong" }, "geometry": { "type": "Point", "coordinates": [ 110.178587196187081, -7.554287165494496 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 14, "KETERANGAN": "Warung Makan" }, "geometry": { "type": "Point", "coordinates": [ 110.179968692700641, -7.552958172664788 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 15, "KETERANGAN": "Produksi Keripik Singkong" }, "geometry": { "type": "Point", "coordinates": [ 110.180065348987753, -7.552368254022654 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 16, "KETERANGAN": "Jasa Pijat" }, "geometry": { "type": "Point", "coordinates": [ 110.178463028987849, -7.555393213498672 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 17, "KETERANGAN": "Craft & Gift Hampers" }, "geometry": { "type": "Point", "coordinates": [ 110.178052769805902, -7.553852384871224 ] } }
+]
+}

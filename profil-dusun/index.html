@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <title>Profil Interaktif | WebGIS Dusun Boto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* Memberi ruang di atas agar konten tidak tertutup navbar */
+        body {
+            padding-top: 56px; /* Menyesuaikan dengan tinggi navbar */
+        }
+
+        /* Styling untuk navbar global dari landing page Anda */
+        .navbar {
+            background-color: #004422;
+        }
+        .navbar .nav-link {
+            color: white;
+            margin-right: 15px;
+        }
+        .navbar .nav-link:hover {
+            text-decoration: underline;
+            color:#004422;   /* Warna saat hover */
+            background-color: #fAF6E6; /* Warna latar belakang saat hover */
+        }
+
+        /* Styling untuk logo */
+        .navbar-brand img {
+            height: 45px; /* Ditingkatkan dari 30px */
+            width: auto; /* Memastikan rasio aspek logo tetap terjaga */
+            margin-right: 12px; /* Sedikit lebih banyak ruang */
+            vertical-align: middle;
+            /* Opsional: Tambahkan filter untuk kontras jika perlu */
+            /* filter: drop-shadow(0px 0px 2px rgba(255, 255, 255, 0.7)); */
+        }
+
+        .navbar-brand {
+            display: flex; /* Menggunakan flexbox untuk penataan yang lebih baik */
+            align-items: center; /* Menyusun item secara vertikal di tengah */
+        }
+    </style>
+
+        
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
+    <style>
+        :root {
+            --dark-blue: #0f172a;
+            --brand-blue: #3b82f6;
+            --brand-green: #10b981;
+            --light-gray: #cbd5e1;
+            --white-alpha-10: rgba(255, 255, 255, 0.1);
+            --white-alpha-20: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            background: var(--dark-blue);
+        }
+        
+        /* POPUP MAPBOX */
+        .mapboxgl-popup {
+            max-width: 250px;
+            font-size: 14px;
+        }
+
+        .mapboxgl-popup-content {
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--light-gray);
+            border: 1px solid var(--white-alpha-20);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 12px 15px;
+        }
+        
+        .mapboxgl-popup-content h4 {
+            color: white;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .mapboxgl-popup-close-button {
+            color: white;
+            padding: 5px;
+        }
+
+
+        /* Main Container */
+        .app-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Animated Background */
+        .animated-background {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e40af 50%, #0f172a 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            z-index: 1;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Particle System */
+        .particles {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(59, 130, 246, 0.6);
+            border-radius: 50%;
+            animation: floatParticle linear infinite;
+        }
+
+        @keyframes floatParticle {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10px) translateX(100px); opacity: 0; }
+        }
+
+        /* Map Container */
+        #map {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--white-alpha-10);
+            z-index: 30;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--brand-blue), var(--brand-green));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: absolute;
+            inset: 0;
+            background: var(--dark-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 1;
+            transition: opacity 1s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 64px;
+            height: 64px;
+            border: 3px solid var(--brand-blue);
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            top: 96px;
+            right: 24px;
+            display: flex;
+            gap: 12px;
+            z-index: 30;
+            animation: slideInControls 1s ease 1.5s forwards;
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        @keyframes slideInControls {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .control-btn {
+            padding: 12px;
+            background: var(--white-alpha-10);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--white-alpha-20);
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: var(--white-alpha-20);
+            transform: scale(1.1);
+        }
+
+        .control-btn.active {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        /* Story Panel */
+        .story-panel {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            max-width: 500px;
+            overflow-y: auto;
+            z-index: 20;
+            animation: slideInPanel 1s ease 0.5s forwards;
+            opacity: 0;
+            transform: translateX(-100px);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-behavior: smooth;
+        }
+
+        .story-panel::-webkit-scrollbar { display: none; }
+
+        @keyframes slideInPanel {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .story-content { padding: 24px; }
+
+        /* Chapter Sections */
+        .chapter-section {
+            margin-bottom: 80vh;
+            padding: 32px;
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--white-alpha-10);
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.7s ease;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .chapter-section h1, .chapter-section h3 {
+            background-clip: text;
+            -webkit-background-clip: text;
+        }
+
+        /* Special Welcome/Intro/Thank You Sections */
+        .welcome-section, .thank-you-section, .chapter-intro {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .welcome-section {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .welcome-section .chapter-title {
+            font-size: 3.5rem;
+            background-image: linear-gradient(135deg, var(--brand-blue), var(--brand-green));
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        
+        .welcome-section .chapter-subtitle {
+            font-size: 1.4rem;
+            color: var(--light-gray);
+            margin-bottom: 24px;
+        }
+        
+        .welcome-section .chapter-description {
+            max-width: 600px;
+            margin: 0 auto 32px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .thank-you-section {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.2));
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            margin-bottom: 24px;
+        }
+
+        .thank-you-section .chapter-title {
+            font-size: 3rem;
+            background-image: linear-gradient(135deg, var(--brand-green), var(--brand-blue));
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        
+        .scroll-down-indicator {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #9ca3af;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .chapter-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .chapter-section.active {
+            background: var(--white-alpha-10);
+            border-color: var(--white-alpha-20);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(1.02);
+        }
+
+        /* Override to maintain unique styles for special sections when active */
+        .welcome-section.active {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .thank-you-section.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.2));
+            border: 2px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .chapter-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .chapter-icon {
+            padding: 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.8s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .chapter-section.active .chapter-icon {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .chapter-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+            transition: color 0.5s ease;
+        }
+
+        .chapter-subtitle {
+            font-size: 14px;
+            color: #93c5fd;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chapter-description {
+            color: #e5e7eb;
+            line-height: 1.7;
+            font-size: 18px;
+        }
+
+        .active-indicator {
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .chapter-section.active .active-indicator { opacity: 1; }
+        .chapter-header + .chapter-description + .active-indicator { justify-content: flex-start; }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulseDot 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+
+        /* Navigation Dots */
+        .nav-dots {
+            position: fixed;
+            right: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 30;
+            animation: slideInDots 1s ease 2s forwards;
+            opacity: 0;
+            transform: translateY(-50%) translateX(50px);
+        }
+
+        @keyframes slideInDots {
+            to {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-dot .tooltip {
+            visibility: hidden;
+            width: 160px;
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(5px);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
+            top: 50%;
+            right: 150%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .nav-dot:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .nav-dot.active {
+            background: white;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            transform: scale(1.25);
+        }
+
+        .nav-dot:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.2);
+        }
+
+        .cta-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 24px;
+            color: #60a5fa;
+            animation: rotateIcon 10s linear infinite;
+        }
+
+        @keyframes rotateIcon {
+            to { transform: rotate(360deg); }
+        }
+
+        .cta-button {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, var(--brand-blue), #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .story-panel {
+                width: 100%;
+                background: rgba(15, 23, 42, 0.85);
+            }
+            .chapter-section {
+                margin: 0 16px 80vh 16px;
+                padding: 24px;
+            }
+            .nav-dots { display: none; }
+            .controls {
+                top: 80px;
+                right: 16px;
+                gap: 8px;
+            }
+            .chapter-intro .chapter-title,
+            .thank-you-section .chapter-title { font-size: 2.5rem; }
+            .welcome-section .chapter-title { font-size: 2.8rem; }
+        }
+
+        /* Color Themes for Chapters */
+        .pulse-dot { background-color: currentColor; }
+        
+        .welcome-section { color: #3b82f6; }
+        .chapter-regional { color: #10b981; }
+        .chapter-desa { color: #3b82f6; }
+        .chapter-dusun { color: #14b8a6; }
+        .chapter-rw { color: #8b5cf6; }
+        .chapter-jalan { color: #f59e0b; }
+        .chapter-hewan { color: #ef4444; }
+        .chapter-umkm { color: #ec4899; }
+        .thank-you-section { color: #10b981; }
+
+        .chapter-regional .chapter-icon { background: linear-gradient(135deg, #10b981, #14b8a6); }
+        .chapter-desa .chapter-icon { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+        .chapter-dusun .chapter-icon { background: linear-gradient(135deg, #14b8a6, #06b6d4); }
+        .chapter-rw .chapter-icon { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+        .chapter-jalan .chapter-icon { background: linear-gradient(135deg, #f59e0b, #f97316); }
+        .chapter-hewan .chapter-icon { background: linear-gradient(135deg, #ef4444, #f97316); }
+        .chapter-umkm .chapter-icon { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+        
+        .chapter-section.active .chapter-title, .chapter-section.active .active-indicator { color: currentColor; }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="profil-dusun/index.html">
+                <img src="storage/LOGO_BOTO_FIX.png" alt="Logo Dusun Boto">
+                WebGIS Dusun Boto
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="main-navbar">
+                <ul class="navbar-nav ms-auto">
+                    
+                    <li class="nav-item"><a class="nav-link" href="/#tentang">Profil</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../profil-dusun/index.html">Explore</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/#foto">Foto</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/#video">Video</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/#kontak">Kontak</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../map/index.html">Lihat Peta</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+            <div class="app-container">
+        <div class="animated-background"></div>
+        <div class="particles" id="particles"></div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="loading-screen" id="loadingScreen">
+            <div>
+                <div class="loader"></div>
+                <div class="loading-text">Memuat Peta Interaktif...</div>
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="controls">
+            <button class="control-btn" id="playBtn" title="Play/Pause Auto Scroll">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5,3 19,12 5,21"></polygon></svg>
+            </button>
+            <button class="control-btn" id="resetBtn" title="Reset to Beginning">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            </button>
+        </div>
+
+        <div class="story-panel" id="storyPanel">
+            <div class="story-content">
+                
+                <section class="chapter-section welcome-section" data-chapter="0">
+                    <h1 class="chapter-title">Selamat Datang</h1>
+                    <p class="chapter-subtitle">di WebGIS Profil Interaktif Dusun Boto</p>
+                    <p class="chapter-description">
+                        Selamat datang di perjalanan visual untuk menjelajahi Dusun Boto, sebuah permata tersembunyi di jantung Desa Sumberarum. Rasakan pengalaman pemetaan interaktif yang akan membawa Anda mengenal lebih dalam tentang dusun kami.
+                    </p>
+                    <div class="scroll-down-indicator">
+                        <span>Mulai Perjalanan Anda</span>
+                        <div style="margin-top: 8px;">▼</div>
+                    </div>
+                    <div class="active-indicator"><div class="pulse-dot"></div><span>Memulai Tur</span></div>
+                </section>
+
+                <section class="chapter-section chapter-regional" data-chapter="1">
+                    <div class="chapter-header">
+                        <div class="chapter-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+                        <div>
+                            <h3 class="chapter-title">Konteks Regional</h3>
+                            <p class="chapter-subtitle">Kecamatan</p>
+                        </div>
+                    </div>
+                    <p class="chapter-description">
+                        Perjalanan dimulai dengan mengamati posisi Desa Sumberarum, yang menjadi titik fokus dalam peta. Secara administratif, desa ini berada di Kecamatan Tempuran. Dusun Boto, sebagai bagian dari Desa Sumberarum, secara khusus masuk dalam wilayah Kecamatan Tempuran. Namun, letaknya sangat dekat dengan batas wilayah, sehingga berbatasan langsung dengan Desa Kalinegoro yang berada di Kecamatan Mertoyudan. Kondisi ini memberikan gambaran lokasi yang strategis sekaligus unik.
+                    </p>
+                    <div class="active-indicator"><div class="pulse-dot"></div><span>Chapter Aktif</span></div>
+                </section>
+
+                <section class="chapter-section chapter-desa" data-chapter="2">
+                    <div class="chapter-header">
+                        <div class="chapter-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h14v-8h3L12 3zm5 15h-4v-4h4v4z"/></svg></div>
+                        <div>
+                            <h3 class="chapter-title">Fokus ke Desa</h3>
+                            <p class="chapter-subtitle">Wilayah Administratif Desa Sumberarum</p>
+                        </div>
+                    </div>
+                    <p class="chapter-description">
+                        Kini kita fokus pada Desa Sumberarum. Desa yang terbagi menjadi 15 dusun. Peta menampilkan batas wilayah desa secara utuh, sebagai rumah dari Dusun Boto yang akan kita jelajahi lebih dalam.
+                    </p>
+                    <div class="active-indicator"><div class="pulse-dot"></div><span>Chapter Aktif</span></div>
+                </section>
+
+                <section class="chapter-section chapter-dusun" data-chapter="3">
+                    <div class="chapter-header">
+                        <div class="chapter-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7C15.12 7 14 8.12 14 9.5s1.12 2.5 2.5 2.5zM9 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm7.5 3c-1.83 0-5.5.92-5.5 2.75V19h11v-2.25c0-1.83-3.67-2.75-5.5-2.75zM9 13c-2.33 0-7 1.17-7 3.5V19h7v-2.25c0-.85.33-2.34 2.37-3.41C10.5 13.1 9.66 13 9 13z"/></svg></div>
+                        <div>
+                            <h3 class="chapter-title">Memasuki Dusun Boto</h3>
+                            <p class="chapter-subtitle">Lokasi Dusun di Dalam Desa</p>
+                        </div>
+                    </div>
+                    <p class="chapter-description">
+                        Peta melakukan zoom ke Dusun Boto (area hijau), sambil tetap mempertahankan layer Desa Sumberarum sebagai konteks visual untuk menunjukkan posisi relatif dusun.
+                    </p>
+                    <div class="active-indicator"><div class="pulse-dot"></div><span>Chapter Aktif</span></div>
+                </section>
+
+                <section class="chapter-section chapter-rw" data-chapter="4">
+                    <div class="chapter-header">
+                        <div class="chapter-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M4 10v4h5v-4H4zm6 0v4h5v-4h-5zm6 0v4h5v-4h-5zM4 15v4h5v-4H4zm6 0v4h5v-4h-5zm6 0v4h5v-4h-5zM4 5v4h5V5H4zm6 0v4h5V5h-5zm6 0v4h5V5h-5z"/></svg></div>
+                        <div>
+                            <h3 class="chapter-title">Struktur Internal</h3>
+                            <p class="chapter-subtitle">Batas Administratif RW</p>
+                        </div>
+                    </div>
+                    <p class="chapter-description">
+                        Fokus lebih dalam, kini menampilkan pembagian wilayah berdasarkan Rukun Warga (RW) yang diberi warna berbeda, memperlihatkan struktur komunitas internal dusun.
+                    </p>
+                    <div class="active-indicator"><div class="pulse-dot"></div><span>Chapter Aktif</span></div>
+                </section>
+
+                <section class="chapter-section chapter-jalan" data-chapter="5">
+                    <div class="chapter-header">
+                        <div class="chapter-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18 4h-1v-1c0-.55-.45-1-1-1s-1 .45-1 1v1h-4v-1c0-.55-.45-1-1-1s-1 .45-1 1v1h-1c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-12c0-1.1-.9-2-2-2zm-8 14h-2v-2h2v2zm0-4h-2v-2h2v2zm4 4h-2v-2h2v2zm0-4h-2v-2h2v2zm4 4h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg></div>
+                        <div>
+                            <h3 class="chapter-title">Aksesibilitas</h3>
+                            <p class="chapter-subtitle">Jaringan Jalan Dusun</p>
+                        </div>
+                    </div>
+                    <p class="chapter-description">
+                        Layer jaringan jalan ditambahkan, menunjukkan jalur-jalur vital yang menghubungkan setiap bagian dusun dan menjadi nadi aktivitas serta akses transportasi warga.
+                    </p>
+                    <div class="active-indicator"><div class="pulse-dot"></div><span>Chapter Aktif</span></div>
+                </section>
+
+                <section class="chapter-section chapter-hewan" data-chapter="6">
+                    <div class="chapter-header">
+                        <div class="chapter-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M2.75 14.25c0 .41.34.75.75.75h.5c.41 0 .75-.34.75-.75s-.34-.75-.75-.75h-.5c-.41 0-.75.34-.75.75zm18.5-1.5c-.55 0-1 .45-1 1v3c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-3c0-.55-.45-1-1-1s-1 .45-1 1v3c0 1.65 1.35 3 3 3h3c1.65 0 3-1.35 3-3v-3c0-.55-.45-1-1-1s-1 .45-1 1zm-9.25-5.5c.41 0 .75-.34.75-.75V4.75c0-.41-.34-.75-.75-.75s-.75.34-.75.75v1.75c0 .41.34.75.75.75zm-3 2.25c.55 0 1-.45 1-1V6c0-1.65-1.35-3-3-3H6C4.35 3 3 4.35 3 6v3c0 .55.45 1 1 1s1-.45 1-1V6c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v3.25c0 .55.45 1 1 1z"/></svg></div>
+                        <div>
+                            <h3 class="chapter-title">Potensi Peternakan</h3>
+                            <p class="chapter-subtitle">Persebaran Kandang Ternak</p>
+                        </div>
+                    </div>
+                    <p class="chapter-description">
+                        Titik-titik persebaran kandang hewan ternak muncul, menyoroti salah satu pilar ekonomi dan aktivitas harian masyarakat Dusun Boto dalam bidang peternakan.
+                    </p>
+                    <div class="active-indicator"><div class="pulse-dot"></div><span>Chapter Aktif</span></div>
+                </section>
+
+                <section class="chapter-section chapter-umkm" data-chapter="7">
+                    <div class="chapter-header">
+                        <div class="chapter-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.22-1.05-.59-1.42zM13 20.01L4 11V4h7l9 9-7 7.01z"/><circle cx="6.5" cy="6.5" r="1.5"/></svg></div>
+                        <div>
+                            <h3 class="chapter-title">Ekonomi Lokal</h3>
+                            <p class="chapter-subtitle">Persebaran UMKM</p>
+                        </div>
+                    </div>
+                    <p class="chapter-description">
+                        Sekarang ditampilkan titik lokasi Usaha Mikro, Kecil, dan Menengah (UMKM), menunjukkan denyut kreativitas dan kewirausahaan warga dalam mengembangkan ekonomi lokal.
+                    </p>
+                    <div class="active-indicator"><div class="pulse-dot"></div><span>Chapter Aktif</span></div>
+                </section>
+
+                <section class="chapter-section thank-you-section" data-chapter="8">
+                    <div class="cta-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm3.414 7.914a1 1 0 00-1.414-1.414L11 11.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l3-3z" clip-rule="evenodd"/></svg>
+                    </div>
+                    <h1 class="chapter-title">Terima Kasih</h1>
+                    <p class="chapter-subtitle">Perjalanan Visual Telah Selesai</p>
+                    <p class="chapter-description">
+                        Terima kasih telah menjelajahi Dusun Boto. Semoga perjalanan ini memberikan pemahaman yang lebih mendalam tentang kehidupan dan potensi masyarakat kami.
+                    </p>
+                    <button class="cta-button" onclick="resetToBeginning()">
+                        Mulai Ulang Tur
+                    </button>
+                    <div class="active-indicator"><div class="pulse-dot"></div><span>Tur Selesai</span></div>
+                </section>
+                
+            </div>
+        </div>
+
+        <div class="nav-dots" id="navDots"></div>
+    </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Konfigurasi untuk setiap chapter
+            const chapters = [{
+                title: 'Selamat Datang',
+                center: [110.179044, -7.553176], zoom: 14, pitch: 0, bearing: 0, layers: []
+            }, {
+                title: 'Konteks Regional',
+                center: [110.21, -7.56], zoom: 12, pitch: 15, bearing: 0,
+                layers: ['tempuran-fill', 'tempuran-outline', 'mertoyudan-fill', 'mertoyudan-outline', 'sumberarum-highlight-fill', 'sumberarum-highlight-outline']
+            }, {
+                title: 'Fokus Desa',
+                center: [110.179044, -7.553176], zoom: 13.5, pitch: 25, bearing: 0,
+                layers: ['sumberarum-fill', 'sumberarum-outline', 'dusun-labels']
+            }, {
+                title: 'Masuk ke Dusun',
+                center: [110.179044, -7.553176], zoom: 15.5, pitch: 35, bearing: -10,
+                layers: ['sumberarum-fill', 'boto-fill', 'boto-outline']
+            }, {
+                title: 'Struktur RW',
+                center: [110.179044, -7.553176], zoom: 16.5, pitch: 45, bearing: 15,
+                layers: ['boto-fill', 'rw-fill', 'rw-outline', 'rw-labels']
+            }, {
+                title: 'Jaringan Jalan',
+                center: [110.178, -7.554], zoom: 17, pitch: 55, bearing: 25,
+                layers: ['boto-fill', 'rw-fill', 'jalan-layer']
+            }, {
+                title: 'Potensi Peternakan',
+                center: [110.1775, -7.555], zoom: 17.5, pitch: 60, bearing: 35,
+                layers: ['boto-fill', 'rw-fill', 'jalan-layer', 'hewan-layer']
+            }, {
+                title: 'Ekonomi Lokal (UMKM)',
+                center: [110.1775, -7.555], zoom: 17.8, pitch: 60, bearing: 45,
+                layers: ['boto-fill', 'rw-fill', 'jalan-layer', 'umkm-layer']
+            }, {
+                title: 'Terima Kasih',
+                center: [110.179044, -7.553176], zoom: 15.5, pitch: 40, bearing: 0,
+                layers: ['boto-fill', 'rw-fill', 'jalan-layer', 'hewan-layer', 'umkm-layer', 'rw-labels']
+            }];
+
+            // Variabel global
+            let activeChapter = 0;
+            let isMapLoaded = false;
+            let isPlaying = false;
+            let map;
+            let autoScrollTimeout = null;
+            const chapterPauseDuration = 6000;
+            
+            // Elemen DOM
+            const storyPanel = document.getElementById('storyPanel');
+            const playBtn = document.getElementById('playBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const progressFill = document.getElementById('progressFill');
+            const chapterSections = document.querySelectorAll('.chapter-section');
+            const allLayerIds = [];
+
+            function createParticles() {
+                const particlesContainer = document.getElementById('particles');
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                    particle.style.animationDelay = `${Math.random() * 10}s`;
+                    particlesContainer.appendChild(particle);
+                }
+            }
+
+            function initializeMap() {
+                mapboxgl.accessToken = 'pk.eyJ1IjoicmF5enUyMyIsImEiOiJjbWRpbHJoeXgwZGt4MmpvYTNldGE3Zmp0In0.mjAKsR4ofnAavL6mGdRC1Q';
+                
+                map = new mapboxgl.Map({
+                    container: 'map',
+                    style: 'mapbox://styles/mapbox/dark-v11',
+                    center: chapters[0].center,
+                    zoom: chapters[0].zoom,
+                    pitch: chapters[0].pitch,
+                    bearing: chapters[0].bearing,
+                    interactive: false
+                });
+
+                map.on('load', () => {
+                    isMapLoaded = true;
+                    setTimeout(() => document.getElementById('loadingScreen').classList.add('hidden'), 500);
+                    addMapLayers();
+                    setupPopups();
+                    setActiveChapter(0);
+                    
+                    map.scrollZoom.enable();
+                    map.dragPan.enable();
+                    map.dragRotate.enable();
+                });
+            }
+
+            function addMapLayers() {
+                const sources = [
+                    { id: 'tempuran', data: 'geojson/TEMPURAN.geojson' },
+                    { id: 'mertoyudan', data: 'geojson/MERTOYUDAN.geojson' },
+                    { id: 'sumberarum', data: 'geojson/SUMBERARUM.geojson' },
+                    { id: 'boto', data: 'geojson/BOTO.geojson' },
+                    { id: 'rw', data: 'geojson/RW.geojson' },
+                    { id: 'jalan', data: 'geojson/JALAN.geojson' },
+                    { id: 'hewan', data: 'geojson/HEWAN.geojson' },
+                    { id: 'umkm', data: 'geojson/UMKM.geojson' }
+                ];
+
+                sources.forEach(source => map.addSource(source.id, { type: 'geojson', data: source.data }));
+
+                const layers = [
+                    { id: 'tempuran-fill', type: 'fill', source: 'tempuran', paint: {'fill-color': '#475569', 'fill-opacity': 0.3} },
+                    { id: 'tempuran-outline', type: 'line', source: 'tempuran', paint: {'line-color': '#94a3b8', 'line-width': 1.5} },
+                    { id: 'mertoyudan-fill', type: 'fill', source: 'mertoyudan', paint: {'fill-color': '#475569', 'fill-opacity': 0.3} },
+                    { id: 'mertoyudan-outline', type: 'line', source: 'mertoyudan', paint: {'line-color': '#94a3b8', 'line-width': 1.5} },
+                    { id: 'sumberarum-highlight-fill', type: 'fill', source: 'sumberarum', paint: {'fill-color': '#3b82f6', 'fill-opacity': 0.4} },
+                    { id: 'sumberarum-highlight-outline', type: 'line', source: 'sumberarum', paint: {'line-color': '#60a5fa', 'line-width': 2} },
+                    { id: 'sumberarum-fill', type: 'fill', source: 'sumberarum', paint: {'fill-color': '#3b82f6', 'fill-opacity': 0.2} },
+                    { id: 'sumberarum-outline', type: 'line', source: 'sumberarum', paint: {'line-color': '#3b82f6', 'line-width': 2} },
+                    { 
+                        id: 'dusun-labels', 
+                        type: 'symbol', 
+                        source: 'sumberarum',
+                        layout: {
+                            'text-field': ['get', 'DUSUN'],
+                            'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                            'text-size': 12,
+                            'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+                            'text-radial-offset': 0.5,
+                            'text-justify': 'auto',
+                            'text-allow-overlap': false
+                        },
+                        paint: {
+                            'text-color': '#ffffff',
+                            'text-halo-color': '#0f172a',
+                            'text-halo-width': 1.5
+                        }
+                    },
+                    { id: 'boto-fill', type: 'fill', source: 'boto', paint: {'fill-color': '#10b981', 'fill-opacity': 0.3} },
+                    { id: 'boto-outline', type: 'line', source: 'boto', paint: {'line-color': '#10b981', 'line-width': 2.5} },
+                    { 
+                        id: 'rw-fill', type: 'fill', source: 'rw', paint: {
+                            'fill-color': [
+                                'match',
+                                ['to-string', ['get', 'RW']],
+                                '1', '#e11d48',
+                                '01', '#e11d48',
+                                '2', '#f97316',
+                                '02', '#f97316',
+                                '3', '#1d4ed8',
+                                '03', '#1d4ed8',
+                                '4', '#84cc16',
+                                '04', '#84cc16',
+                                '#64748b'
+                            ],
+                            'fill-opacity': 0.5
+                        } 
+                    },
+                    { id: 'rw-outline', type: 'line', source: 'rw', paint: {'line-color': '#ffffff', 'line-width': 1, 'line-dasharray': [2, 2]} },
+                    { id: 'rw-labels', type: 'symbol', source: 'rw', layout: {'text-field': ['format', 'RW ', ['get', 'RW']], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 12, 'text-allow-overlap': true}, paint: {'text-color': '#ffffff', 'text-halo-color': '#000', 'text-halo-width': 1} },
+                    { id: 'jalan-layer', type: 'line', source: 'jalan', paint: {'line-color': '#f59e0b', 'line-width': 2.5, 'line-opacity': 0.9} },
+                    { id: 'hewan-layer', type: 'circle', source: 'hewan', paint: {'circle-radius': 5, 'circle-color': '#ef4444', 'circle-stroke-color': 'white', 'circle-stroke-width': 1.5} },
+                    { id: 'umkm-layer', type: 'circle', source: 'umkm', paint: {'circle-radius': 6, 'circle-color': '#ec4899', 'circle-stroke-color': 'white', 'circle-stroke-width': 1.5} }
+                ];
+                
+                layers.forEach(layer => {
+                    map.addLayer({...layer, layout: {...layer.layout, visibility: 'none'}});
+                    allLayerIds.push(layer.id);
+                });
+            }
+
+            function setupPopups() {
+                const createPopup = (e, title, prop) => {
+                    const coordinates = e.features[0].geometry.coordinates.slice();
+                    const description = e.features[0].properties[prop];
+
+                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                    }
+
+                    new mapboxgl.Popup()
+                        .setLngLat(coordinates)
+                        .setHTML(`<h4>${title}</h4><p>${description || 'Data tidak tersedia'}</p>`)
+                        .addTo(map);
+                };
+                
+                const setCursor = (layer, cursor) => {
+                    map.on('mouseenter', layer, () => map.getCanvas().style.cursor = cursor);
+                    map.on('mouseleave', layer, () => map.getCanvas().style.cursor = '');
+                };
+
+                map.on('click', 'hewan-layer', (e) => {
+                    if (activeChapter === 6 || activeChapter === 8) {
+                        createPopup(e, 'Jenis Ternak', 'Budidaya_H');
+                    }
+                });
+
+                map.on('click', 'umkm-layer', (e) => {
+                    if (activeChapter === 7 || activeChapter === 8) {
+                        createPopup(e, 'Jenis UMKM', 'KETERANGAN');
+                    }
+                });
+                
+                setCursor('hewan-layer', 'pointer');
+                setCursor('umkm-layer', 'pointer');
+            }
+
+            function setActiveChapter(chapterIndex) {
+                if (!isMapLoaded || chapterIndex < 0 || chapterIndex >= chapters.length) return;
+                
+                const chapter = chapters[chapterIndex];
+                activeChapter = chapterIndex;
+
+                map.flyTo({ ...chapter, duration: 2000, essential: true });
+
+                allLayerIds.forEach(id => map.setLayoutProperty(id, 'visibility', 'none'));
+                if (chapter.layers) {
+                    chapter.layers.forEach(id => map.setLayoutProperty(id, 'visibility', 'visible'));
+                }
+                
+                chapterSections.forEach((sec, i) => sec.classList.toggle('active', i === chapterIndex));
+                document.querySelectorAll('.nav-dot').forEach((dot, i) => dot.classList.toggle('active', i === chapterIndex));
+                
+                const progress = (chapterIndex / (chapters.length - 1)) * 100;
+                progressFill.style.width = `${progress}%`;
+            }
+
+            function autoScrollNextChapter() {
+                if (!isPlaying) return;
+                let nextChapterIndex = activeChapter + 1;
+                if (nextChapterIndex >= chapters.length) {
+                    stopAutoScroll();
+                    return;
+                }
+                chapterSections[nextChapterIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                autoScrollTimeout = setTimeout(autoScrollNextChapter, chapterPauseDuration);
+            }
+
+            function startAutoScroll() {
+                if (isPlaying) return;
+                isPlaying = true;
+                playBtn.classList.add('active');
+                playBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+                autoScrollNextChapter();
+            }
+
+            function stopAutoScroll() {
+                if (!isPlaying) return;
+                isPlaying = false;
+                playBtn.classList.remove('active');
+                playBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5,3 19,12 5,21"></polygon></svg>`;
+                if (autoScrollTimeout) clearTimeout(autoScrollTimeout);
+                autoScrollTimeout = null;
+            }
+
+            window.resetToBeginning = function() {
+                stopAutoScroll();
+                storyPanel.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function createNavigationDots() {
+                const navDotsContainer = document.getElementById('navDots');
+                navDotsContainer.innerHTML = '';
+                chapters.forEach((chapter, index) => {
+                    const dot = document.createElement('div');
+                    dot.className = 'nav-dot';
+                    dot.innerHTML = `<span class="tooltip">${chapter.title}</span>`;
+                    dot.addEventListener('click', () => {
+                        stopAutoScroll();
+                        chapterSections[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+                    navDotsContainer.appendChild(dot);
+                });
+            }
+
+            function setupIntersectionObserver() {
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach(entry => {
+                            const chapterIndex = parseInt(entry.target.getAttribute('data-chapter'));
+                            entry.target.classList.toggle('visible', entry.isIntersecting);
+                            if (entry.isIntersecting && !isNaN(chapterIndex)) {
+                                setActiveChapter(chapterIndex);
+                            }
+                        });
+                    }, 
+                    { root: storyPanel, threshold: 0.5 }
+                );
+                chapterSections.forEach(section => observer.observe(section));
+            }
+
+            // Setup Event Listeners
+            playBtn.addEventListener('click', () => isPlaying ? stopAutoScroll() : startAutoScroll());
+            resetBtn.addEventListener('click', resetToBeginning);
+            storyPanel.addEventListener('scroll', () => { if (isPlaying) stopAutoScroll(); });
+            
+            // Initialize
+            createParticles();
+            initializeMap();
+            createNavigationDots();
+            setupIntersectionObserver();
+        });
+    </script>
+</body>
+</html>

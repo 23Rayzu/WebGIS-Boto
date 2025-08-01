@@ -1,0 +1,16 @@
+{
+"type": "FeatureCollection",
+"name": "SARPRAS",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "KETERANGAN": "Perdagangan dan Jasa", "Nama": null }, "geometry": { "type": "Point", "coordinates": [ 110.177404601358859, -7.554211274794843, 0.0 ] } },
+{ "type": "Feature", "properties": { "KETERANGAN": "Perdagangan dan Jasa", "Nama": null }, "geometry": { "type": "Point", "coordinates": [ 110.177631602483856, -7.553722988902999, 0.0 ] } },
+{ "type": "Feature", "properties": { "KETERANGAN": "Perdagangan dan Jasa", "Nama": null }, "geometry": { "type": "Point", "coordinates": [ 110.178043487475463, -7.553803414923713, 0.0 ] } },
+{ "type": "Feature", "properties": { "KETERANGAN": "Perdagangan dan Jasa", "Nama": null }, "geometry": { "type": "Point", "coordinates": [ 110.178927456848854, -7.554132613068841, 0.0 ] } },
+{ "type": "Feature", "properties": { "KETERANGAN": "Perdagangan dan Jasa", "Nama": null }, "geometry": { "type": "Point", "coordinates": [ 110.179607427468426, -7.553145910111222, 0.0 ] } },
+{ "type": "Feature", "properties": { "KETERANGAN": "Peribadatan", "Nama": "Al-Ihlas" }, "geometry": { "type": "Point", "coordinates": [ 110.177831878540061, -7.553079498261468, 0.0 ] } },
+{ "type": "Feature", "properties": { "KETERANGAN": "Peribadatan", "Nama": "Mushola" }, "geometry": { "type": "Point", "coordinates": [ 110.180295647163675, -7.552742392985695, 0.0 ] } },
+{ "type": "Feature", "properties": { "KETERANGAN": "Pemakaman", "Nama": null }, "geometry": { "type": "Point", "coordinates": [ 110.177946384916623, -7.552046754234902, 0.0 ] } },
+{ "type": "Feature", "properties": { "KETERANGAN": "Pemakaman", "Nama": null }, "geometry": { "type": "Point", "coordinates": [ 110.178200038603947, -7.550779586253102, 0.0 ] } }
+]
+}
